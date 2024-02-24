@@ -269,7 +269,7 @@ int main() {
         if (!newWindow.empty() && newWindow != currentWindow) {
             
                 currentWindow = newWindow;
-                SaveInFile("\n\n[Window: " + currentWindow + "]\n");
+                SaveInFile("\n\n[" + currentWindow + "]\n");
             
         }
         for (int i = 8; i <= 190; i++) {
