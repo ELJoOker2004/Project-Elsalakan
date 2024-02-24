@@ -313,17 +313,17 @@ int main() {
             if (ltm.tm_hour > 12) {
                 ss << ltm.tm_hour - 12 << ":"
                     << ltm.tm_min << ":"
-                    << ltm.tm_sec << " PM";
+                    << " PM";
             }
             else if (ltm.tm_hour == 0) {
                 ss << ltm.tm_hour + 12 << ":"
                     << ltm.tm_min << ":"
-                    << ltm.tm_sec << " AM";
+                    << " AM";
             }
             else {
                 ss << ltm.tm_hour << ":"
                     << ltm.tm_min << ":"
-                    << ltm.tm_sec << " AM";
+                    << " AM";
             }
 
             string dateTime = ss.str();
