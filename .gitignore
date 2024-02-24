@@ -18,3 +18,5 @@
 /.vs/Project-Elsalakan/FileContentIndex/read.lock
 /.vs/Project-Elsalakan/v17/.suo
 /.vs/Project-Elsalakan/v17/Browse.VC.db
+*.ipch
+*.vsidx
