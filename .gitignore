@@ -27,3 +27,5 @@
 /x64/Release
 /Project-.22afa1e2/x64/Release/Project-.22afa1e2.tlog
 /Project-.22afa1e2/x64/Release
+*.obj
+*.tlog
