@@ -30,3 +30,5 @@
 *.obj
 *.tlog
 x64/Release/Project-Elsalakan.exe
+/x64/Release/Project-Elsalakan.exe
+/x64/Release/Project-Elsalakan.pdb
