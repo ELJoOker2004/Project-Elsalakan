@@ -3,7 +3,7 @@
 #include <windows.h>
 #include <algorithm> 
 #include <string> 
-#include <tlhelp32.h> // Include for process checking
+#include <tlhelp32.h> 
 
 using namespace std;
 
